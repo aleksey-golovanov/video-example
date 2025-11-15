@@ -5,6 +5,9 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as path from "node:path";
 
 export class InfraStack extends cdk.Stack {
   public readonly uploadBucket: s3.Bucket;
@@ -26,6 +29,15 @@ export class InfraStack extends cdk.Stack {
       ],
     });
 
+    const signedUrlFunction = new lambda.Function(this, "SignedUrlFunction", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: "signed-url-upload.handler",
+      code: lambda.Code.fromAsset(path.join(__dirname, "lambda")),
+      environment: {
+        UPLOAD_BUCKET: "infrastack-uploadbucketd2c1da78-6hjfcna5pgwv",
+      },
+    });
+
     this.hlsBucket = new s3.Bucket(this, "HlsBucket", {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
@@ -37,6 +49,23 @@ export class InfraStack extends cdk.Stack {
         },
       ],
     });
+
+    this.uploadBucket.grantPut(signedUrlFunction);
+
+    const api = new apigateway.RestApi(this, "SignedUrlApi", {
+      restApiName: "Signed URL Service",
+      description: "Generates S3 signed URLs",
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: ["Content-Type", "Authorization"],
+      },
+    });
+
+    const signedUrlIntegration = new apigateway.LambdaIntegration(
+      signedUrlFunction
+    );
+    api.root.addResource("signed-url").addMethod("POST", signedUrlIntegration);
 
     this.distribution = new cloudfront.Distribution(this, "Distribution", {
       defaultBehavior: {
