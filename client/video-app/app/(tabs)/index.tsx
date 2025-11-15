@@ -1,8 +1,16 @@
 import { Button, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import ExpoBackgroundStreamer from "expo-background-streamer";
+import { useState } from "react";
+import { CircularProgressBar } from "@/components/progress";
+import { useFont } from "@shopify/react-native-skia";
+import { useSharedValue } from "react-native-reanimated";
 
 export default function HomeScreen() {
+  const [uploadInProgress, setUploadInProgress] = useState(false);
+
+  const percentage = useSharedValue(0);
+
   const handleUpload = async () => {
     const response = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["videos"],
@@ -16,8 +24,12 @@ export default function HomeScreen() {
       response.assets.forEach(async (asset) => {
         try {
           ExpoBackgroundStreamer.addListener("upload-progress", (event) => {
-            console.log(`Upload: ${event.progress}% - ${event.speed} bytes/s`);
-            console.log(`ETA: ${event.estimatedTimeRemaining}s`);
+            percentage.value = event.progress;
+
+            if (event.progress === 100) {
+              setUploadInProgress(false);
+              percentage.value = 0;
+            }
           });
 
           const signedUrlResp = await fetch(
@@ -49,6 +61,8 @@ export default function HomeScreen() {
               nonce: "",
             },
           });
+
+          setUploadInProgress(true);
         } catch (e) {
           console.log("error", e);
         }
@@ -56,9 +70,24 @@ export default function HomeScreen() {
     }
   };
 
+  const font = useFont(require("../../assets/fonts/Roboto-Bold.ttf"), 60);
+
+  if (!font) {
+    return <View />;
+  }
+
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Button title="Upload" onPress={handleUpload} />
+      {uploadInProgress ? (
+        <CircularProgressBar
+          radius={120}
+          strokeWidth={20}
+          font={font}
+          percentage={percentage}
+        />
+      ) : (
+        <Button title="Upload" onPress={handleUpload} />
+      )}
     </View>
   );
 }
