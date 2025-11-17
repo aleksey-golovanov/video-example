@@ -8,6 +8,7 @@ import { useSharedValue } from "react-native-reanimated";
 import { videoState } from "@/stores/video";
 import { useSnapshot } from "valtio";
 import { useRouter } from "expo-router";
+import { Video } from "react-native-compressor";
 
 export default function HomeScreen() {
   const snap = useSnapshot(videoState);
@@ -29,10 +30,35 @@ export default function HomeScreen() {
     if (response.assets) {
       response.assets.forEach(async (asset) => {
         try {
-          videoState.lastFileName = asset.fileName?.split(".")[0] || "";
+          setUploadInProgress(true);
+
+          const result = await Video.compress(
+            asset.uri,
+            {
+              progressDivider: 10,
+              downloadProgress: (progress) => {
+                console.log("downloadProgress: ", progress);
+              },
+            },
+            (progress) => {
+              percentage.value = (progress * 100) / 2;
+              console.log("Compression Progress: ", progress);
+            }
+          );
+
+          console.log("result", result);
+
+          const compressedAsset = {
+            fileName: result.split("/").pop(),
+            mimeType: "video/mp4",
+            uri: result,
+          };
+
+          videoState.lastFileName =
+            compressedAsset.fileName?.split(".")[0] || "";
 
           ExpoBackgroundStreamer.addListener("upload-progress", (event) => {
-            percentage.value = event.progress;
+            percentage.value = 50 + event.progress / 2;
 
             if (event.progress === 100) {
               setUploadInProgress(false);
@@ -48,8 +74,8 @@ export default function HomeScreen() {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                fileName: asset.fileName,
-                fileType: asset.mimeType,
+                fileName: compressedAsset.fileName,
+                fileType: compressedAsset.mimeType,
               }),
             }
           );
@@ -58,7 +84,7 @@ export default function HomeScreen() {
 
           await ExpoBackgroundStreamer.startUpload({
             url: signedUrl,
-            path: asset.uri,
+            path: compressedAsset.uri,
             headers: {
               "Content-Type": "application/octet-stream",
             },
@@ -69,8 +95,6 @@ export default function HomeScreen() {
               nonce: "",
             },
           });
-
-          setUploadInProgress(true);
         } catch (e) {
           console.log("error", e);
         }

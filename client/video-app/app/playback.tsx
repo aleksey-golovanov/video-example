@@ -7,6 +7,8 @@ export default function PlaybackScreen() {
 
   const url = `https://d3iqjh3sijq7w3.cloudfront.net/processed/${snap.lastFileName}/${snap.lastFileName}.m3u8`;
 
+  console.log("url", url);
+
   return (
     <Video
       source={{
