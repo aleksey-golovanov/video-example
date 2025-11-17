@@ -5,8 +5,14 @@ import { useState } from "react";
 import { CircularProgressBar } from "@/components/progress";
 import { useFont } from "@shopify/react-native-skia";
 import { useSharedValue } from "react-native-reanimated";
+import { videoState } from "@/stores/video";
+import { useSnapshot } from "valtio";
+import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
+  const snap = useSnapshot(videoState);
+  const router = useRouter();
+
   const [uploadInProgress, setUploadInProgress] = useState(false);
 
   const percentage = useSharedValue(0);
@@ -23,6 +29,8 @@ export default function HomeScreen() {
     if (response.assets) {
       response.assets.forEach(async (asset) => {
         try {
+          videoState.lastFileName = asset.fileName?.split(".")[0] || "";
+
           ExpoBackgroundStreamer.addListener("upload-progress", (event) => {
             percentage.value = event.progress;
 
@@ -70,7 +78,7 @@ export default function HomeScreen() {
     }
   };
 
-  const font = useFont(require("../../assets/fonts/Roboto-Bold.ttf"), 60);
+  const font = useFont(require("../assets/fonts/Roboto-Bold.ttf"), 60);
 
   if (!font) {
     return <View />;
@@ -86,7 +94,12 @@ export default function HomeScreen() {
           percentage={percentage}
         />
       ) : (
-        <Button title="Upload" onPress={handleUpload} />
+        <>
+          <Button title="Upload" onPress={handleUpload} />
+          {snap.lastFileName && (
+            <Button title="Play" onPress={() => router.push("/playback")} />
+          )}
+        </>
       )}
     </View>
   );
