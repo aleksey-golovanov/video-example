@@ -8,14 +8,19 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "cdk-deploy": "cdk deploy",
+    "cdk-diff": "cdk diff",
+    "cdk-synth": "cdk synth",
+    "diagram": "cdk-dia"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "22.7.9",
+    "aws-cdk": "2.1031.2",
+    "cdk-dia": "^0.12.1",
     "jest": "^29.7.0",
     "ts-jest": "^29.2.5",
-    "aws-cdk": "2.1031.2",
     "ts-node": "^10.9.2",
     "typescript": "~5.6.3"
   },

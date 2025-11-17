@@ -4,7 +4,7 @@ export default function TabTwoScreen() {
   return (
     <Video
       source={{
-        uri: "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8",
+        uri: "https://d3iqjh3sijq7w3.cloudfront.net/processed/IMG_4699/IMG_4699.m3u8",
       }}
       style={{ width: "100%", height: "100%" }}
       controls
