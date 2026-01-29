@@ -9,6 +9,7 @@ import { videoState } from "@/stores/video";
 import { useSnapshot } from "valtio";
 import { useRouter } from "expo-router";
 import { Video } from "react-native-compressor";
+import ExpoUploadFile from "@/modules/expo-upload-file";
 
 export default function HomeScreen() {
   const snap = useSnapshot(videoState);
@@ -43,7 +44,7 @@ export default function HomeScreen() {
             (progress) => {
               percentage.value = (progress * 100) / 2;
               console.log("Compression Progress: ", progress);
-            }
+            },
           );
 
           console.log("result", result);
@@ -67,7 +68,7 @@ export default function HomeScreen() {
           });
 
           const signedUrlResp = await fetch(
-            "https://uye6vrtxqg.execute-api.us-east-1.amazonaws.com/prod/signed-url",
+            `${process.env.EXPO_PUBLIC_SIGNED_URL_API_ENDPOINT}/signed-url`,
             {
               method: "POST",
               headers: {
@@ -77,22 +78,16 @@ export default function HomeScreen() {
                 fileName: compressedAsset.fileName,
                 fileType: compressedAsset.mimeType,
               }),
-            }
+            },
           );
 
           const signedUrl = (await signedUrlResp.json()).signedUrl;
 
-          await ExpoBackgroundStreamer.startUpload({
+          ExpoUploadFile.startUpload({
             url: signedUrl,
             path: compressedAsset.uri,
             headers: {
               "Content-Type": "application/octet-stream",
-            },
-            method: "PUT",
-            encryption: {
-              enabled: false,
-              key: "",
-              nonce: "",
             },
           });
         } catch (e) {

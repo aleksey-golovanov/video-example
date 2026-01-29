@@ -1,0 +1,10 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["ExpoUploadFileModule"],
+    "appDelegateSubscribers": ["AppLifecycleDelegate"]
+  },
+  "android": {
+    "modules": ["expo.modules.uploadfile.ExpoUploadFileModule"]
+  }
+}
