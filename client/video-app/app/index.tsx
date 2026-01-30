@@ -1,6 +1,5 @@
 import { Button, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import ExpoBackgroundStreamer from "expo-background-streamer";
 import { useState } from "react";
 import { CircularProgressBar } from "@/components/progress";
 import { useFont } from "@shopify/react-native-skia";
@@ -58,10 +57,12 @@ export default function HomeScreen() {
           videoState.lastFileName =
             compressedAsset.fileName?.split(".")[0] || "";
 
-          ExpoBackgroundStreamer.addListener("upload-progress", (event) => {
-            percentage.value = 50 + event.progress / 2;
+          ExpoUploadFile.addListener("upload-progress", (event) => {
+            percentage.value = 50 + (event.progress * 100) / 2;
 
-            if (event.progress === 100) {
+            console.log("event.progress", event.progress);
+
+            if (event.progress === 1) {
               setUploadInProgress(false);
               percentage.value = 0;
             }

@@ -1,11 +1,5 @@
 import UIKit
 
-extension Notification.Name {
-    static let uploadProgress = Notification.Name("UploadProgressNotification")
-    static let uploadCompleted = Notification.Name("UploadCompletedNotification")
-    static let uploadFailed = Notification.Name("UploadFailedNotification")
-}
-
 class UploadManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
     static let shared = UploadManager()
 
@@ -73,8 +67,6 @@ class UploadManager: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
         totalBytesExpectedToSend: Int64
     ) {
         let progress = Double(totalBytesSent) / Double(totalBytesExpectedToSend)
-
-        print("progress: \(progress)")
 
         guard let taskId = task.taskDescription else { return }
 

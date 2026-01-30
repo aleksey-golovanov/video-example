@@ -58,6 +58,15 @@ public class ExpoUploadFileModule: Module {
                 fromFile: fileURL
             )
 
+            let taskId = UUID().uuidString
+            uploadTask.taskDescription = taskId
+
+            let progressObserver = NotificationManager.shared.observeProgress(
+                forTaskId: taskId
+            ) { [weak self] progress, taskId in
+                self?.sendEvent("upload-progress", ["progress": progress])
+            }
+
             uploadTask.resume()
         }
     }
